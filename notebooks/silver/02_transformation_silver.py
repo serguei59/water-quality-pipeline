@@ -156,23 +156,24 @@ codes_remarques_map = F.create_map(
 df_silver_mesures = (
     df_bronze_analyses
 
-    # Cast des types
+    # Les valeurs brutes de l'API sont toutes en string
     .withColumn("resultat", F.col("resultat").cast(DoubleType()))
     .withColumn("limite_detection", F.col("limite_detection").cast(DoubleType()))
     .withColumn("limite_quantification", F.col("limite_quantification").cast(DoubleType()))
     .withColumn("date_prelevement", F.to_date("date_prelevement", "yyyy-MM-dd"))
     .withColumn("code_remarque", F.col("code_remarque").cast(StringType()))
 
-    # Suppression des lignes sans résultat ni code station
+    # On ne conserve que les lignes avec les 3 clés métier indispensables à l'analyse
     .filter(F.col("code_station").isNotNull())
     .filter(F.col("code_parametre").isNotNull())
     .filter(F.col("date_prelevement").isNotNull())
 
-    # Enrichissement code remarque
+    # Traduction des codes numériques Hub'Eau en libellés compréhensibles
     .withColumn("libelle_remarque",
         F.coalesce(codes_remarques_map[F.col("code_remarque")], F.lit("Inconnu")))
 
-    # Gestion des valeurs sous seuil de détection
+    # Convention demi-limite : les valeurs sous seuil de détection/quantification
+    # sont remplacées par LD/2 ou LQ/2, pratique standard en métrologie environnementale
     .withColumn("resultat_corrige",
         F.when(F.col("code_remarque") == "3",
                F.col("limite_detection") / 2)
@@ -342,21 +343,20 @@ print("\n" + "="*60)
 print("CONTROLES QUALITE - COUCHE SILVER")
 print("="*60)
 
-# Taux de valeurs valides
 total = df_silver_mesures.count()
 valides = df_silver_mesures.filter(F.col("valeur_valide")).count()
-print(f"\nTaux de valeurs valides : {valides/total*100:.1f}% ({valides:,}/{total:,})")
+outliers = df_silver_mesures.filter(F.col("is_outlier")).count()
+print(f"\nTotal mesures Silver        : {total:,}")
+print(f"Valeurs valides (codes 1/10): {valides:,} ({valides/total*100:.1f}%)")
+print(f"Valeurs aberrantes (outliers): {outliers:,} ({outliers/total*100:.2f}%)")
 
-# Distribution des statuts de conformité
 print("\nDistribution des statuts de conformité :")
 df_silver_conformite.groupBy("statut_conformite").count().orderBy("count", ascending=False).show()
 
-# Paramètres les plus mesurés
 print("Top 10 paramètres les plus mesurés :")
 df_silver_mesures.groupBy("code_parametre", "nom_parametre").count() \
     .orderBy("count", ascending=False).show(10)
 
-# Couverture temporelle
 print("Couverture temporelle :")
 df_silver_mesures.agg(
     F.min("date_prelevement").alias("date_min"),

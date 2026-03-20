@@ -83,6 +83,8 @@ df_conformite = spark.table(f"{DATABASE_NAME}.silver_conformite")
 
 logger.info("=== DIM_STATIONS ===")
 
+# monotonically_increasing_id() génère une clé de substitution unique par partition Spark.
+# Elle n'est pas séquentielle mais garantit l'unicité au sein du DataFrame.
 dim_stations = (
     df_stations
     .select(
@@ -143,6 +145,8 @@ save_gold(dim_parametres, "dim_parametres")
 
 logger.info("=== DIM_TEMPS ===")
 
+# La clé de substitution temporelle est construite au format YYYYMMDD (ex: 20230415).
+# Ce format entier permet un tri naturel et facilite les filtres par plage de dates en SQL.
 dim_temps = (
     df_mesures
     .select("date_prelevement", "annee", "mois", "trimestre")
@@ -338,6 +342,8 @@ save_gold(agg_evolution_temporelle, "agg_evolution_temporelle")
 
 logger.info("=== AGG_ALERTES_PARAMETRES ===")
 
+# Table principale pour les dashboards de surveillance réglementaire.
+# Le taux_depassement (%) est l'indicateur clé pour prioriser les zones à risque.
 agg_alertes_parametres = (
     fact_conformite_normes
     .groupBy("code_departement", "nom_departement", "code_parametre", "nom_parametre_ref", "annee")
