@@ -197,7 +197,8 @@ logger.info("=== FACT_MESURES_QUALITE ===")
 
 fact_mesures_qualite = (
     df_mesures
-    .filter(F.col("valeur_valide"))
+    # Seules les valeurs valides et sans outliers alimentent la table de faits analytique
+    .filter(F.col("valeur_valide") & ~F.col("is_outlier"))
     # Jointure avec dim_stations pour récupérer la clé de substitution
     .join(
         dim_stations.select("station_sk", "code_station", "code_departement", "nom_departement"),
