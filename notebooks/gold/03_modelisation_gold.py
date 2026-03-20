@@ -45,18 +45,25 @@ GOLD_PATH = "/mnt/delta/gold"
 spark.sql(f"USE {DATABASE_NAME}")
 
 def save_gold(df, table_name: str):
-    """Sauvegarde une table dans la couche Gold au format Delta."""
-    path = f"{GOLD_PATH}/{table_name}"
-    (df.withColumn("_gold_timestamp", F.current_timestamp())
-       .write
-       .format("delta")
-       .mode("overwrite")
-       .option("overwriteSchema", "true")
-       .option("path", path)
-       .saveAsTable(f"{DATABASE_NAME}.{table_name}"))
-    count = spark.table(f"{DATABASE_NAME}.{table_name}").count()
-    logger.info(f"{table_name} : {count:,} enregistrements")
-    return count
+    """
+    Sauvegarde une table dans la couche Gold au format Delta.
+    Lève une exception en cas d'échec pour interrompre le pipeline proprement.
+    """
+    try:
+        path = f"{GOLD_PATH}/{table_name}"
+        (df.withColumn("_gold_timestamp", F.current_timestamp())
+           .write
+           .format("delta")
+           .mode("overwrite")
+           .option("overwriteSchema", "true")
+           .option("path", path)
+           .saveAsTable(f"{DATABASE_NAME}.{table_name}"))
+        count = spark.table(f"{DATABASE_NAME}.{table_name}").count()
+        logger.info(f"{table_name} : {count:,} enregistrements")
+        return count
+    except Exception as e:
+        logger.error(f"Echec écriture {table_name} : {e}")
+        raise
 
 # COMMAND ----------
 

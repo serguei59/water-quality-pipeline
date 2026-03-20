@@ -127,15 +127,18 @@ df_silver_stations = (
     )
 )
 
-path = f"{SILVER_PATH}/silver_stations"
-(df_silver_stations.write
-    .format("delta")
-    .mode("overwrite")
-    .option("overwriteSchema", "true")
-    .option("path", path)
-    .saveAsTable(f"{DATABASE_NAME}.silver_stations"))
-
-logger.info(f"silver_stations : {df_silver_stations.count():,} stations valides")
+try:
+    path = f"{SILVER_PATH}/silver_stations"
+    (df_silver_stations.write
+        .format("delta")
+        .mode("overwrite")
+        .option("overwriteSchema", "true")
+        .option("path", path)
+        .saveAsTable(f"{DATABASE_NAME}.silver_stations"))
+    logger.info(f"silver_stations : {df_silver_stations.count():,} stations valides")
+except Exception as e:
+    logger.error(f"Echec écriture silver_stations : {e}")
+    raise
 
 # COMMAND ----------
 
@@ -255,15 +258,18 @@ df_silver_mesures = (
     )
 )
 
-path = f"{SILVER_PATH}/silver_mesures"
-(df_silver_mesures.write
-    .format("delta")
-    .mode("overwrite")
-    .option("overwriteSchema", "true")
-    .option("path", path)
-    .saveAsTable(f"{DATABASE_NAME}.silver_mesures"))
-
-logger.info(f"silver_mesures : {df_silver_mesures.count():,} mesures")
+try:
+    path = f"{SILVER_PATH}/silver_mesures"
+    (df_silver_mesures.write
+        .format("delta")
+        .mode("overwrite")
+        .option("overwriteSchema", "true")
+        .option("path", path)
+        .saveAsTable(f"{DATABASE_NAME}.silver_mesures"))
+    logger.info(f"silver_mesures : {df_silver_mesures.count():,} mesures")
+except Exception as e:
+    logger.error(f"Echec écriture silver_mesures : {e}")
+    raise
 
 # COMMAND ----------
 
@@ -322,15 +328,18 @@ df_silver_conformite = (
     )
 )
 
-path = f"{SILVER_PATH}/silver_conformite"
-(df_silver_conformite.write
-    .format("delta")
-    .mode("overwrite")
-    .option("overwriteSchema", "true")
-    .option("path", path)
-    .saveAsTable(f"{DATABASE_NAME}.silver_conformite"))
-
-logger.info(f"silver_conformite : {df_silver_conformite.count():,} évaluations")
+try:
+    path = f"{SILVER_PATH}/silver_conformite"
+    (df_silver_conformite.write
+        .format("delta")
+        .mode("overwrite")
+        .option("overwriteSchema", "true")
+        .option("path", path)
+        .saveAsTable(f"{DATABASE_NAME}.silver_conformite"))
+    logger.info(f"silver_conformite : {df_silver_conformite.count():,} évaluations")
+except Exception as e:
+    logger.error(f"Echec écriture silver_conformite : {e}")
+    raise
 
 # COMMAND ----------
 
