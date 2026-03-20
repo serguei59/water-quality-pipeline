@@ -53,8 +53,30 @@ water-quality-pipeline/
 ## Lancement
 
 1. Importer les notebooks dans Databricks
-2. Exécuter `orchestration/00_setup.py` pour initialiser les bases de données
-3. Exécuter dans l'ordre : Bronze → Silver → Gold
+2. Exécuter `notebooks/orchestration/00_setup.py` pour initialiser la base de données et vérifier la connectivité API
+3. Exécuter dans l'ordre :
+   - `notebooks/bronze/01_ingestion_bronze.py`
+   - `notebooks/silver/02_transformation_silver.py`
+   - `notebooks/gold/03_modelisation_gold.py`
+4. Exécuter `tests/04_tests_qualite.py` pour valider la qualité des données
+
+## Tests de Qualité
+
+Le notebook `tests/04_tests_qualite.py` vérifie automatiquement :
+
+| Couche | Contrôles |
+|--------|-----------|
+| Bronze | Tables non vides, métadonnées d'ingestion présentes |
+| Silver | Absence de doublons, taux de valeurs valides ≥ 50%, taux d'outliers < 5%, dates dans la fenêtre 2020-2024 |
+| Gold | Unicité des clés de dimension, intégrité référentielle, cohérence de volumétrie Gold/Silver |
+
+Les tests critiques lèvent une exception pour bloquer le pipeline en cas d'anomalie.
+
+## Qualité des Données
+
+- **Valeurs sous seuil de détection** : remplacées par LD/2 ou LQ/2 (convention métrologique standard)
+- **Outliers** : détectés par paramètre via des plages physiquement plausibles (référentiels SANDRE/OMS), flagués `is_outlier` et exclus des analyses Gold
+- **Conformité réglementaire** : évaluée selon la Directive Cadre sur l'Eau 2000/60/CE et la directive eau potable 98/83/CE
 
 ## Endpoints API Utilisés
 
